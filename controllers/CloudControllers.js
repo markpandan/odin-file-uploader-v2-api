@@ -3,38 +3,31 @@ const { singleFileUpload } = require("../config/mutler");
 const { isAuth } = require("../lib/authUtils");
 const db = require("../prisma/cloudQueries");
 
-exports.cloudGet = [
-  isAuth,
-  async (req, res) => {
-    const { id: userId } = req.user;
-    const { folderId } = req.params;
+exports.cloudGet = async (req, res) => {
+  const { id: userId } = req.user;
+  const { folderId } = req.params;
 
-    const files = await db.getFiles(userId, folderId);
-    const folders = await db.getFolders(userId, folderId);
-    const directories = await db.getDirectories(folderId);
+  const files = await db.getFiles(userId, folderId);
+  const folders = await db.getFolders(userId, folderId);
+  const directories = await db.getDirectories(folderId);
 
-    res.json({ output: { files, folders, directories } });
-  },
-];
+  res.json({ output: { files, folders, directories } });
+};
 
-exports.cloudNewFolder = [
-  isAuth,
-  async (req, res) => {
-    const { id: userId } = req.user;
-    const { name, parentId } = req.body;
+exports.cloudNewFolder = async (req, res) => {
+  const { id: userId } = req.user;
+  const { name, parentId } = req.body;
 
-    await db.createNewFolder(name, userId, parentId);
+  await db.createNewFolder(name, userId, parentId);
 
-    res.json({ message: "Folder Created" });
-  },
-];
+  res.json({ message: "Folder Created" });
+};
 
-exports.cloudRenameFolder = [isAuth, async (req, res) => {}];
+exports.cloudRenameFolder = async (req, res) => {};
 
-exports.cloudDeleteFolder = [isAuth, async (req, res) => {}];
+exports.cloudDeleteFolder = async (req, res) => {};
 
 exports.cloudNewFile = [
-  isAuth,
   singleFileUpload("uploadFile"),
   async (req, res) => {
     const { id: userId } = req.user;
@@ -51,6 +44,6 @@ exports.cloudNewFile = [
   },
 ];
 
-exports.cloudRenameFile = [isAuth, async (req, res) => {}];
+exports.cloudRenameFile = async (req, res) => {};
 
-exports.cloudDeleteFile = [isAuth, async (req, res) => {}];
+exports.cloudDeleteFile = async (req, res) => {};
