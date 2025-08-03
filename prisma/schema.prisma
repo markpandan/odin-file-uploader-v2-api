@@ -5,8 +5,8 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
-  output   = "../generated/prisma"
+  provider        = "prisma-client-js"
+  previewFeatures = ["typedSql"]
 }
 
 datasource db {
@@ -15,13 +15,49 @@ datasource db {
 }
 
 model Users {
-  id        String @id @default(uuid())
-  username  String @unique
-  firstname String
-  lastname  String
-  email     String @unique
-  password  String
+  id       String @id @default(uuid())
+  username String @unique
+  email    String @unique
+  password String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  Files   Files[]
+  Folders Folders[]
+}
+
+model Files {
+  id        String  @id
+  name      String
+  size      Int
+  directory String?
+
+  parent   Folders? @relation(fields: [parentId], references: [id])
+  parentId String?
+
+  owner   Users  @relation(fields: [ownerId], references: [id])
+  ownerId String
+
+  to_share Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Folders {
+  id   String @id @default(uuid(7))
+  name String
+
+  parent    Folders?  @relation("ParentChildRelations", fields: [parentId], references: [id])
+  parentId  String?   @unique
+  childrens Folders[] @relation("ParentChildRelations")
+
+  owner   Users  @relation(fields: [ownerId], references: [id])
+  ownerId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  Files Files[]
 }

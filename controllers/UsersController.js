@@ -1,6 +1,6 @@
 const issueToken = require("../lib/jwtUtils");
 const db = require("../prisma/userQueries");
-const verifyLogin = require("../lib/verifyLogin");
+const { verifyLogin } = require("../lib/authUtils");
 const { validateCredentials } = require("../validators/UserValidators");
 const { validationResult } = require("express-validator");
 
@@ -26,14 +26,12 @@ exports.userSignup = [
         .json({ message: "Username or email already exists" });
     }
 
-    const { username, password, firstname, lastname, email } = req.body;
+    const { username, email, password } = req.body;
 
     try {
       await db.createNewUser({
         username,
         password,
-        firstname,
-        lastname,
         email,
       });
       res.json({ message: "User account created" });
