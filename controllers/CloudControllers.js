@@ -31,14 +31,20 @@ exports.cloudNewFile = [
   singleFileUpload("uploadFile"),
   async (req, res) => {
     const { id: userId } = req.user;
-    const { parentId } = req.body.parentId;
+    const { parentId } = req.body;
+
+    if (!req.file) {
+      res.status(400).json({ message: "Invalid File Submitted" });
+      return;
+    }
 
     try {
-      await db.createNewFile(userId, parentId, req.file);
       await uploadToCloud(req.file.path, req.file.destination);
+      await db.createNewFile(userId, parentId, req.file);
 
       res.json({ message: "File Uploaded" });
     } catch (error) {
+      console.log(error);
       res.status(500).json({ message: error.message });
     }
   },

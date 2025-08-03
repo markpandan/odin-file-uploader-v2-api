@@ -50,7 +50,7 @@ model Folders {
   name String
 
   parent    Folders?  @relation("ParentChildRelations", fields: [parentId], references: [id])
-  parentId  String?   @unique
+  parentId  String?
   childrens Folders[] @relation("ParentChildRelations")
 
   owner   Users  @relation(fields: [ownerId], references: [id])

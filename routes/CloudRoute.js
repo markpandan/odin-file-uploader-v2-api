@@ -4,7 +4,7 @@ const { isAuth } = require("../lib/authUtils");
 const router = express.Router();
 const controller = require("../controllers/CloudControllers");
 
-//  Folders
+// === Folders ===
 
 router.get("/folders/", isAuth, controller.cloudGet);
 
@@ -20,7 +20,7 @@ router.delete(
   controller.cloudDeleteFolder
 );
 
-// Files
+// === Files ====
 
 router.post("/files/new", isAuth, controller.cloudNewFile);
 
