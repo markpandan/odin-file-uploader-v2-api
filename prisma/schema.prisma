@@ -28,9 +28,13 @@ model Users {
 }
 
 model Files {
-  id        String  @id
-  name      String
-  size      Int
+  id            String @id
+  name          String
+  size          Int
+  resource_type String
+  format        String
+  public_id     String
+
   directory String?
 
   parent   Folders? @relation(fields: [parentId], references: [id])
@@ -49,7 +53,7 @@ model Folders {
   id   String @id @default(uuid(7))
   name String
 
-  parent    Folders?  @relation("ParentChildRelations", fields: [parentId], references: [id])
+  parent    Folders?  @relation("ParentChildRelations", fields: [parentId], references: [id], onDelete: Cascade)
   parentId  String?
   childrens Folders[] @relation("ParentChildRelations")
 

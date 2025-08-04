@@ -1,6 +1,5 @@
-const { uploadToCloud } = require("../config/cloudinary");
+const { uploadToCloud, destroyFileInCloud } = require("../config/cloudinary");
 const { singleFileUpload } = require("../config/mutler");
-const { isAuth } = require("../lib/authUtils");
 const db = require("../prisma/cloudQueries");
 
 exports.cloudGet = async (req, res) => {
@@ -23,9 +22,30 @@ exports.cloudNewFolder = async (req, res) => {
   res.json({ message: "Folder Created" });
 };
 
-exports.cloudRenameFolder = async (req, res) => {};
+exports.cloudRenameFolder = async (req, res) => {
+  const { id: userId } = req.user;
+  const { folderId } = req.params;
+  const { name } = req.body;
 
-exports.cloudDeleteFolder = async (req, res) => {};
+  try {
+    await db.renameFolder(folderId, userId, name);
+    res.json({ message: "Folder Renamed" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.cloudDeleteFolder = async (req, res) => {
+  const { id: userId } = req.user;
+  const { folderId } = req.params;
+
+  try {
+    await db.deleteFolder(folderId, userId);
+    res.json({ message: "Folder Deleted" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
 
 exports.cloudNewFile = [
   singleFileUpload("uploadFile"),
@@ -39,8 +59,16 @@ exports.cloudNewFile = [
     }
 
     try {
-      await uploadToCloud(req.file.path, req.file.destination);
-      await db.createNewFile(userId, parentId, req.file);
+      const uploadedFile = await uploadToCloud(
+        req.file.path,
+        req.file.destination
+      );
+
+      await db.createNewFile(userId, parentId, req.file, {
+        resource_type: uploadedFile.resource_type,
+        format: uploadedFile.format,
+        public_id: uploadedFile.public_id,
+      });
 
       res.json({ message: "File Uploaded" });
     } catch (error) {
@@ -50,6 +78,32 @@ exports.cloudNewFile = [
   },
 ];
 
-exports.cloudRenameFile = async (req, res) => {};
+exports.cloudRenameFile = async (req, res) => {
+  const { id: userId } = req.user;
+  const { fileId } = req.params;
+  const { name } = req.body;
 
-exports.cloudDeleteFile = async (req, res) => {};
+  try {
+    await db.renameFile(fileId, userId, name);
+    res.json({ message: "File Renamed" });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.cloudDeleteFile = async (req, res) => {
+  const { id: userId } = req.user;
+  const { fileId } = req.params;
+  const { public_id, resource_type } = req.body;
+
+  try {
+    await destroyFileInCloud(public_id, resource_type);
+    await db.deleteFile(fileId, userId);
+
+    res.json({ message: "File Deleted" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+};

@@ -2,15 +2,25 @@ const cloudinary = require("cloudinary").v2;
 const path = require("node:path");
 const { removeTmpInPath } = require("../lib/pathUtils");
 
-async function uploadToCloud(filePath, destination) {
+exports.uploadToCloud = async (filePath, destination) => {
   destination = removeTmpInPath(destination);
   const filename = path.parse(filePath).name;
 
   const databaseFolder = process.env.CLOUDINARY_DATABASE_FOLDER;
   return await cloudinary.uploader.upload(filePath, {
+    resource_type: "auto",
     public_id: filename,
     asset_folder: databaseFolder + "/" + destination,
   });
-}
+};
 
-module.exports = { uploadToCloud };
+exports.destroyFileInCloud = async (public_id, resource_type) => {
+  return await cloudinary.uploader.destroy(public_id, {
+    resource_type,
+    invalidate: true,
+  });
+};
+
+exports.downloadFileInCloud = async (public_id) => {
+  return cloudinary.url(public_id, { flags: "attachment" });
+};

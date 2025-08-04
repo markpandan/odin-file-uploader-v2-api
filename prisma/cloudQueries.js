@@ -12,6 +12,15 @@ exports.getFiles = async (ownerId, parentId) => {
   });
 };
 
+exports.getOneFile = async (ownerId, fileId) => {
+  return await prisma.files.findUnique({
+    where: {
+      id: fileId,
+      ownerId,
+    },
+  });
+};
+
 exports.getFolders = async (ownerId, parentId) => {
   return await prisma.folders.findMany({
     where: {
@@ -22,17 +31,23 @@ exports.getFolders = async (ownerId, parentId) => {
 };
 
 exports.getDirectories = async (folderId) => {
-  return await prisma.$queryRawTyped(recursiveDirectory(folderId));
+  const directories = await prisma.$queryRawTyped(recursiveDirectory(folderId));
+  return directories.reverse();
 };
 
-exports.createNewFile = async (ownerId, parentId, uploadedFile) => {
-  const basename = path.parse(uploadedFile.filename).name;
+exports.createNewFile = async (ownerId, parentId, uploadedFile, properties) => {
+  const { resource_type, format, public_id } = properties;
+
+  const { name: basename, ext } = path.parse(uploadedFile.filename);
   const filePath = removeTmpInPath(uploadedFile.path);
-  await prisma.files.create({
+  return await prisma.files.create({
     data: {
       id: basename,
       name: uploadedFile.originalname,
       size: uploadedFile.size,
+      resource_type,
+      format: format || ext.slice(1),
+      public_id,
       directory: filePath,
       parentId: parentId || null,
       ownerId,
@@ -41,7 +56,7 @@ exports.createNewFile = async (ownerId, parentId, uploadedFile) => {
 };
 
 exports.createNewFolder = async (name, ownerId, parentId) => {
-  await prisma.folders.create({
+  return await prisma.folders.create({
     data: {
       name,
       parentId: parentId || null,
@@ -50,10 +65,44 @@ exports.createNewFolder = async (name, ownerId, parentId) => {
   });
 };
 
-exports.renameFile = async () => {};
+exports.renameFile = async (fileId, userId, newName) => {
+  return await prisma.files.update({
+    where: {
+      id: fileId,
+      ownerId: userId,
+    },
+    data: {
+      name: newName,
+    },
+  });
+};
 
-exports.renameFolder = async () => {};
+exports.renameFolder = async (folderId, userId, newName) => {
+  return await prisma.folders.update({
+    where: {
+      id: folderId,
+      ownerId: userId,
+    },
+    data: {
+      name: newName,
+    },
+  });
+};
 
-exports.deleteFile = async () => {};
+exports.deleteFile = async (fileId, userId) => {
+  return await prisma.files.delete({
+    where: {
+      id: fileId,
+      ownerId: userId,
+    },
+  });
+};
 
-exports.deleteFolder = async () => {};
+exports.deleteFolder = async (folderId, userId) => {
+  return await prisma.folders.delete({
+    where: {
+      id: folderId,
+      ownerId: userId,
+    },
+  });
+};
