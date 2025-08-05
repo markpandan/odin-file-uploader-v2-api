@@ -17,6 +17,9 @@ app.use("/users", usersRoute);
 const cloudRoute = require("./routes/CloudRoute");
 app.use("/cloud", cloudRoute);
 
+const shareRoute = require("./routes/ShareRoute");
+app.use("/share", shareRoute);
+
 const PORT = 5000;
 app.listen(PORT, () => {
   console.log(`Listening on port ${PORT}!`);

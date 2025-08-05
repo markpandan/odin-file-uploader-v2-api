@@ -1,6 +1,11 @@
-const { uploadToCloud, destroyFileInCloud } = require("../config/cloudinary");
+const {
+  uploadToCloud,
+  destroyFileInCloud,
+  downloadFileInCloud,
+} = require("../config/cloudinary");
 const { singleFileUpload } = require("../config/mutler");
 const db = require("../prisma/cloudQueries");
+const https = require("https");
 
 exports.cloudGet = async (req, res) => {
   const { id: userId } = req.user;
@@ -102,6 +107,39 @@ exports.cloudDeleteFile = async (req, res) => {
     await db.deleteFile(fileId, userId);
 
     res.json({ message: "File Deleted" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.cloudDownloadFile = async (req, res) => {
+  const { id: userId } = req.user;
+  const { fileId } = req.params;
+
+  try {
+    const file = await db.getOneFile(userId, fileId);
+    const url = await downloadFileInCloud(file.public_id);
+
+    res.json({ output: { url } });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.cloudShareFile = async (req, res) => {
+  const { id: userId } = req.user;
+  const { fileId } = req.params;
+  const { share } = req.body;
+
+  try {
+    await db.updateFileShare(fileId, userId, share);
+
+    res.json({
+      message: "File Share Status Changed",
+      output: { share },
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: error.message });

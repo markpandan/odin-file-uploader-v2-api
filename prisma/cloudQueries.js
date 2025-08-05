@@ -106,3 +106,15 @@ exports.deleteFolder = async (folderId, userId) => {
     },
   });
 };
+
+exports.updateFileShare = async (fileId, ownerId, share) => {
+  return await prisma.files.update({
+    where: {
+      id: fileId,
+      ownerId,
+    },
+    data: {
+      to_share: share,
+    },
+  });
+};

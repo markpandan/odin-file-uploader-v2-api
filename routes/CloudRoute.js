@@ -22,9 +22,13 @@ router.delete(
 
 // === Files ====
 
+router.get("/files/:fileId/download", isAuth, controller.cloudDownloadFile);
+
 router.post("/files/new", isAuth, controller.cloudNewFile);
 
 router.put("/files/:fileId/rename", isAuth, controller.cloudRenameFile);
+
+router.put("/files/:fileId/share", isAuth, controller.cloudShareFile);
 
 router.delete("/files/:fileId/delete", isAuth, controller.cloudDeleteFile);
 
